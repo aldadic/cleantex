@@ -1,0 +1,147 @@
+<html lang="en" data-bs-theme="dark">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>CleanTeX</title>
+        <!-- CleanTeX -->
+        <script src="clean.js"></script>
+        <!-- CodeMirror -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js" integrity="sha512-OeZ4Yrb/W7d2W4rAMOO0HQ9Ro/aWLtpW9BUSR2UOWnSV2hprXLkkYnnCGc9NeLUxxE4ZG7zN16UuT1Elqq8Opg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css" integrity="sha512-uf06llspW44/LZpHzHT6qBOIVODjWtv4MxCricRxkzvopAlSWnTf6hpZTFxuuZcuNE9CBQhqE0Seu1CoRk84nQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/stex/stex.min.js" integrity="sha512-YJhRJtlj8qI8w/UrL7wX2ysIIDFFGLGkeCJOJh6RiCYWqIe3Xo4fEevUC6LoTp2uPrOzxRkmgGUwH8Aze41usA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material.min.css" integrity="sha512-jA21084nir3cN96YuzJ1DbtDn30kxhxqQToAzCEGZcuRAswWfYirpUu8HVm8wRNoWDCYtA4iavd2Rb1bQSLv7g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/addon/display/placeholder.min.js" integrity="sha512-acBo6sW2h2GZQ9BqU9v5RyYGPUEr1a9jrukJg825Y0ahxAg/7aqTNPtcalloqnf4DfsRVdcdNmcBNWPD8b8W8Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <!-- Bootstrap -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+        <!-- Custom -->
+        <style>
+            .CodeMirror {
+                border: var(--bs-border-width) solid var(--bs-border-color);
+                border-radius: var(--bs-border-radius);
+            }
+            .CodeMirror-placeholder {
+                opacity: 0.5;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container py-5 px-2">
+            <h1 class="text-center">CleanTeX</h1>
+            <p class="text-center lead">A simple tool to remove/unwrap all instances of a given LaTeX command from your code.</p>
+            <div id="alerts"></div>
+            <div class="row pb-1 pt-4">
+                <div class="col-lg">
+                    <form class="row g-2 justify-content-lg-start justify-content-center">
+                        <div class="col-auto">
+                            <label class="col-form-label" for="command">Command:</label>
+                        </div>
+                        <div class="col-auto">
+                            <input class="form-control" type="text" id="command" value="revision">
+                        </div>
+                        <div class="col-auto">
+                            <button type="button" class="btn btn-primary" id="clean">Clean LaTeX</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-lg text-lg-end text-center">
+                    <button type="button" id="copy" class="btn btn-secondary"><i class="bi bi-copy"></i> Copy</button>
+                    <button type="button" id="paste" class="btn btn-secondary"><i class="bi bi-clipboard"></i> Paste</button>
+                    <button type="button" onclick="editor.setValue('')" class="btn btn-danger"><i class="bi bi-x-circle"></i> Clear</button>
+                </div>
+            </div>
+            <textarea id="input"></textarea>
+            <p class="pt-1 text-muted">Code contains <span id="counter">0</span> instances of the command.</p>
+        </div>
+
+        <!-- Bootstrap -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+        <!-- CleanTeX -->
+        <script>
+
+            // Initialize CodeMirror
+            const editor = CodeMirror.fromTextArea(document.getElementById("input"), {
+                lineNumbers: true,
+                mode: "stex",
+                theme: "material",
+                lineWrapping: true,
+                placeholder: "Paste your LaTeX code here..."
+            });
+            editor.setSize("100%", "60vh");
+
+            // Get elements
+            const counter = document.getElementById("counter");
+            const command = document.getElementById("command");
+            const copy_button = document.getElementById("copy");
+            const paste_button = document.getElementById("paste");
+            const alerts = document.getElementById("alerts");
+            const bsAlert = new bootstrap.Alert('#alerts')
+
+            // Function to append alerts
+            const appendAlert = (message, type) => {
+                const alert = document.createElement('div')
+                alert.classList.add('alert', `alert-${type}`, 'alert-dismissible', 'fade', 'show')
+                alert.setAttribute('role', 'alert')
+                alert.innerHTML = [
+                  `<div>${message}</div>`,
+                  '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>'
+                ].join('')
+              
+                alerts.append(alert)
+                setTimeout(() => alert.classList.remove('show'), 5000)
+                setTimeout(() => alert.remove(), 5150)
+            }
+
+            // Copy button
+            copy_button.addEventListener("click", function() {
+                navigator.clipboard.writeText(editor.getValue())
+                    .then(() => {
+                        copy_button.classList.add("btn-success");
+                        copy_button.innerHTML = "<i class='bi bi-check-lg'></i> Copied";
+                        setTimeout(() => {
+                            copy_button.classList.remove("btn-success");
+                            copy_button.innerHTML = "<i class='bi bi-copy'></i> Copy";
+                        }, 1000);
+                    })
+                    .catch((error) => {
+                        appendAlert("Failed to copy to clipboard!", "danger");
+                    });
+            });
+
+            // Paste button
+            paste_button.addEventListener("click", function() {
+                navigator.clipboard.readText()
+                    .then((text) => {
+                        editor.setValue(text);
+                    })
+                    .catch((error) => {
+                        appendAlert("Failed to paste from clipboard!", "danger");
+                    });
+            });
+
+            // Clean button
+            document.getElementById("clean").addEventListener("click", function() {
+                let [output, count] = cleanString(editor.getValue(), `\\${command.value}`);
+                editor.setValue(output);
+                if (count == 0) {
+                    appendAlert(`No instances of <var>\\${command.value}</var> found.`, "warning");
+                } else if (count == 1) {
+                    appendAlert(`Successfully removed 1 instance of <var>\\${command.value}</var>.`, "success");
+                } else {
+                    appendAlert(`Successfully removed ${count} instances of <var>\\${command.value}</var>.`, "success");
+                }
+            });
+
+            // add event listeners to update the counter
+            editor.on("change", function() {
+                let [output, count] = cleanString(editor.getValue(), `\\${command.value}`);
+                counter.innerText = count;
+            });
+            command.addEventListener("input", function() {
+                let [output, count] = cleanString(editor.getValue(),`\\${command.value}`);
+                counter.innerText = count;
+            });
+
+        </script>
+    </body>
+</html>
