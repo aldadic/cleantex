@@ -14,7 +14,7 @@ function cleanString(input, command) {
       if (text.substring(i, i + command.length) === command && !record) {
         record = true;
         openBraces++;
-        i += command.length;
+        i += command.length - 1;
       } else if (text[i] === '{' && record) {
         temp += text[i];
         openBraces++;

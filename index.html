@@ -124,7 +124,7 @@
 
             // Clean button
             document.getElementById("clean").addEventListener("click", function() {
-                let [output, count] = cleanString(editor.getValue(), `\\${command.value}`);
+                let [output, count] = cleanString(editor.getValue(), `\\${command.value}{`);
                 editor.setValue(output);
                 if (count == 0) {
                     appendAlert(`No instances of <var>\\${command.value}</var> found.`, "warning");
@@ -137,11 +137,11 @@
 
             // add event listeners to update the counter
             editor.on("change", function() {
-                let [output, count] = cleanString(editor.getValue(), `\\${command.value}`);
+                let [output, count] = cleanString(editor.getValue(), `\\${command.value}{`);
                 counter.innerText = count;
             });
             command.addEventListener("input", function() {
-                let [output, count] = cleanString(editor.getValue(),`\\${command.value}`);
+                let [output, count] = cleanString(editor.getValue(),`\\${command.value}{`);
                 counter.innerText = count;
             });
 
