@@ -30,8 +30,8 @@
             <h1 class="text-center">CleanTeX</h1>
             <p class="text-center lead">A simple tool to remove/unwrap all instances of a given LaTeX command from your code.</p>
             <div id="alerts"></div>
-            <div class="row pb-1 pt-4">
-                <div class="col-lg">
+            <div class="row pb-1 pt-4 justify-content-between">
+                <div class="col-lg-auto">
                     <form class="row g-2 justify-content-lg-start justify-content-center">
                         <div class="col-auto">
                             <label class="col-form-label" for="command">Command:</label>
@@ -39,12 +39,16 @@
                         <div class="col-auto">
                             <input class="form-control" type="text" id="command" value="revision">
                         </div>
+                        <div class="btn-group col-auto" role="group" aria-label="mode">
+                            <button type="button" id="unwrap" class="btn btn-secondary">Unwrap</button>
+                            <button type="button" id="remove" class="btn btn-outline-secondary">Remove</button>
+                        </div>
                         <div class="col-auto">
                             <button type="button" class="btn btn-primary" id="clean">Clean LaTeX</button>
                         </div>
                     </form>
                 </div>
-                <div class="col-lg text-lg-end text-center">
+                <div class="col-lg-auto text-lg-end text-center">
                     <button type="button" id="copy" class="btn btn-secondary"><i class="bi bi-copy"></i> Copy</button>
                     <button type="button" id="paste" class="btn btn-secondary"><i class="bi bi-clipboard"></i> Paste</button>
                     <button type="button" onclick="editor.setValue('')" class="btn btn-danger"><i class="bi bi-x-circle"></i> Clear</button>
@@ -75,6 +79,8 @@
             // Get elements
             const counter = document.getElementById("counter");
             const command = document.getElementById("command");
+            const unwrap_button = document.getElementById("unwrap");
+            const remove_button = document.getElementById("remove");
             const copy_button = document.getElementById("copy");
             const paste_button = document.getElementById("paste");
             const alerts = document.getElementById("alerts");
@@ -94,6 +100,27 @@
                 setTimeout(() => alert.classList.remove('show'), 5000)
                 setTimeout(() => alert.remove(), 5150)
             }
+
+            // Cleaning mode
+            var remove = false;
+
+            // Unwrap button
+            unwrap_button.addEventListener("click", function() {
+                remove = false;
+                unwrap_button.classList.add("btn-secondary");
+                unwrap_button.classList.remove("btn-outline-secondary");
+                remove_button.classList.add("btn-outline-secondary");
+                remove_button.classList.remove("btn-secondary");
+            });
+
+            // Remove button
+            remove_button.addEventListener("click", function() {
+                remove = true;
+                remove_button.classList.add("btn-secondary");
+                remove_button.classList.remove("btn-outline-secondary");
+                unwrap_button.classList.add("btn-outline-secondary");
+                unwrap_button.classList.remove("btn-secondary");
+            });
 
             // Copy button
             copy_button.addEventListener("click", function() {
@@ -124,14 +151,15 @@
 
             // Clean button
             document.getElementById("clean").addEventListener("click", function() {
-                let [output, count] = cleanString(editor.getValue(), `\\${command.value}{`);
+                let [output, count] = cleanString(editor.getValue(), `\\${command.value}{`, remove);
+                let action = remove ? "removed" : "unwrapped";
                 editor.setValue(output);
                 if (count == 0) {
                     appendAlert(`No instances of <var>\\${command.value}</var> found.`, "warning");
                 } else if (count == 1) {
-                    appendAlert(`Successfully removed 1 instance of <var>\\${command.value}</var>.`, "success");
+                    appendAlert(`Successfully ${action} 1 instance of <var>\\${command.value}</var>.`, "success");
                 } else {
-                    appendAlert(`Successfully removed ${count} instances of <var>\\${command.value}</var>.`, "success");
+                    appendAlert(`Successfully ${action} ${count} instances of <var>\\${command.value}</var>.`, "success");
                 }
             });
 
